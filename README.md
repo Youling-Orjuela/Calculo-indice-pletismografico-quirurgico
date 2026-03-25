@@ -1,4 +1,4 @@
-# Cálculo ambulatorio del índice pletismográfico quirúrgico
+# Cálculo ambulatorio del índice pletismográfico quirúrgico (SPI)
 ## Introducción
 El dolor posoperatorio continúa siendo uno de los desafíos más relevantes en la aplicación actual anestésica. Se estima que entre el 20 % y el 80 % de los pacientes sometidos a procedimientos quirúrgicos experimentan dolor agudo posoperatorio de intensidad moderada a severa, lo que refleja un manejo analgésico intraoperatorio frecuentemente insuficiente [1]. Esta realidad impone la necesidad de contar con métodos objetivos y cuantitativos que permitan evaluar en tiempo real el equilibrio entre la activación nociceptiva y el efecto de la analgesia administrada durante la cirugía bajo anestesia general.
 

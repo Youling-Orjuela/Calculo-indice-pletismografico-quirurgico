@@ -11,6 +11,11 @@ La fotopletismografía (PPG) es una técnica óptica no invasiva que permite det
 - Componente pulsátil (AC): Refleja las variaciones cíclicas del volumen sanguíneo asociadas a cada latido cardíaco. Su amplitud (PPGA, del inglés PPG Amplitude) está fuertemente influenciada por el tono vasomotor periférico: ante un estímulo nociceptivo, la activación simpática produce vasoconstricción periférica, lo que reduce la amplitud de la onda de pulso.
 - Componente continua (DC): Representa la absorción basal de luz por los tejidos y la sangre venosa, y varía lentamente con cambios en la perfusión tisular.
 
+
+Adicionalmente, del análisis temporal de la señal PPG se puede extraer el intervalo entre latidos (HBI, del inglés Heart Beat Interval), equivalente al intervalo R-R del electrocardiograma, cuyo inverso corresponde a la frecuencia cardíaca. Ante activación nociceptiva, el sistema nervioso simpático incrementa la frecuencia cardíaca, reduciendo el HBI [3].
+Estas dos variables —la amplitud de la onda de pulso (PPGA) y el intervalo entre latidos (HBI)— constituyen la base fisiológica sobre la que se construye el índice pletismográfico quirúrgico.
+
+
 ## Procedimiento
 ## Test que vamos a realizar
 ## Adquisión de la señal

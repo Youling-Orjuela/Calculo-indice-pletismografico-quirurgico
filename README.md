@@ -34,11 +34,18 @@ donde:
 - **Los coeficientes de ponderación 0.7 y 0.3** reflejan la mayor contribución de la vasomotricidad periférica (capturada por PPGA) frente a la variación de la frecuencia cardíaca (capturada por HBI) en la respuesta nociceptiva [4].
 
 ## Procedimiento
-Para llevar a cabo este laboratorio se empleo  el sensor MAX30102, que integra un pulsioxímetro y un monitor de frecuencia cardíaca, tiene dos LED uno rojo de 660nm y otro infrarrojo de 920nm, además tiene filtro, fotodetector y un conversor ADC de 16 bits [6]. 
-Este sensor que conecto al microcontrolador ESP32 y se diseño un código en MATLAB que captura esta señal resultante.
-En la captura de la señal un integrante del grupo coloca el dedo sobre el sensor y se configura el código para obtener una señal de 2 minutos. En los primeros 40 segundos el integrante esta sentado y en reposo, apenas llegue a los 40 segundos se le realiza la prueba de Cold Pressor Test y pasados otros 40 segundos el integrante vuelve a las condiciones inciales hasta completar los 2 minutos. Se toma nota de los valores del SPI que se alcanzan en cada uno de estos intervalos de tiempo.
+Para llevar a cabo este laboratorio se empleó el sensor MAX30102, el cual integra un pulsioxímetro y un monitor de frecuencia cardíaca. Este dispositivo cuenta con dos LED, uno rojo de 660 nm y otro infrarrojo de 920 nm, además de incorporar un filtro óptico, un fotodetector y un conversor analógico-digital (ADC) de 16 bits [6].
+
+El sensor se conectó a un microcontrolador ESP32, y se diseñó un código en MATLAB encargado de capturar la señal obtenida.
+
+Para la adquisición de la señal, un integrante del grupo colocó su dedo sobre el sensor, configurando el sistema para realizar una captura de 2 minutos. Durante los primeros 40 segundos, el sujeto permaneció en reposo en posición sentada. Al cumplirse este tiempo, se aplicó la prueba Cold Pressor Test (CPT) durante los siguientes 40 segundos. Finalmente, el sujeto regresó a las condiciones iniciales de reposo durante los últimos 40 segundos, hasta completar el tiempo total de adquisición.
+
+Durante cada uno de estos intervalos, se registraron los valores del índice pletismográfico quirúrgico (SPI) obtenidos.
+
 ### Cold Pressor Test
-El CPT es una prueba cardiovascular que se basa en introducir la mano en un recipiente con agua helada durante un minuto es usada para inducir estrés, si el dolor se vuelve insoportable puede retirar la mano y es de gran ayuda para investigadores poder medir el umbral y la tolerancia. Debido a que en el laboratorio no se permite el ingreso de agua, se hizo una modificación de esta prueba, y consiste en usar una banda con tres compartimientos que adentro tienen bolitas de gel, congelarla y ponerla alrededor del paciente, esta prueba emula exacatamente el CPT pero sin la necesidad de agua.
+El Cold Pressor Test (CPT) es una prueba cardiovascular que consiste en introducir la mano en un recipiente con agua fría (generalmente entre 0 y 4 °C) durante aproximadamente un minuto. Esta prueba se utiliza para inducir una respuesta de estrés fisiológico, permitiendo evaluar variables como la respuesta autonómica y la tolerancia al dolor. En caso de que el dolor se vuelva intolerable, el participante puede retirar la mano antes de completar el tiempo establecido [7].
+
+Debido a que en el laboratorio no se permite el uso de agua, se implementó una modificación del procedimiento. Esta consistió en el uso de una banda con tres compartimientos rellenos de gel, previamente congelados, la cual se colocó alrededor de la extremidad del participante. Este método permite emular el estímulo térmico del CPT sin necesidad de emplear agua, manteniendo el objetivo de inducir una respuesta fisiológica similar.
 ## Adquisión de la señal
 ## Análisis
 ## Conclusiones
@@ -71,4 +78,6 @@ tetanic and intracutaneous electrical stimulation,” Anesthesiology, vol. 127,
 no. 2, pp. 272–283, 2017. https://doi.org/10.1097/ALN.0000000000001670.
 
 [6] “MAX30102 - Sensor de concentración de Oxígeno y Ritmo cardíaco - Electronilab,” Electronilab, Mar. 12, 2026. https://electronilab.co/tienda/max30100-sensor-de-concentracion-de-oxigeno-y-ritmo-cardiaco/?srsltid=AfmBOoqiTAVjVyqg8rbmHV2--vj8PzahtCs0zrUgqFnTVDIwkiPpI9yh
+
+[7] Y. S. Can, B. Arnrich, and C. Ersoy, “Stress detection in daily life scenarios using smart phones and wearable sensors: A survey,” Journal of Biomedical Informatics, vol. 92, p. 103139, Feb. 2019, doi: 10.1016/j.jbi.2019.103139.
 

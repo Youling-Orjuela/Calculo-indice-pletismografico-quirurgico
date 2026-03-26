@@ -19,6 +19,8 @@ Clínicamente, el rango objetivo de SPI para una analgesia intraoperatoria adecu
 
 ### Modelo Matemático del SPI
 
+El índice pletismográfico quirúrgico se calcula a partir de dos características normalizadas de la señal PPG: la amplitud de la onda de pulso (PPGA) y el intervalo entre latidos (HBI). Para su cálculo, ambas variables se normalizan respecto a valores de referencia establecidos durante una ventana temporal basal, obteniendo así el PPGA normalizado (nPPGA) y el HBI normalizado (nHBI), ambos con valores en el intervalo [0, 1] [4].
+
 ## Procedimiento
 ## Test que vamos a realizar
 ## Adquisión de la señal

@@ -29,9 +29,9 @@ $$
 
 donde:
 
-- nPPGA es la amplitud pico a pico de la onda de pulso PPG normalizada al rango de referencia individual del paciente.
-- nHBI es el intervalo entre latidos consecutivos, normalizado de forma análoga.
-- Los coeficientes de ponderación 0.7 y 0.3 reflejan la mayor contribución de la vasomotricidad periférica (capturada por PPGA) frente a la variación de la frecuencia cardíaca (capturada por HBI) en la respuesta nociceptiva [4].
+- **nPPGA** es la amplitud pico a pico de la onda de pulso PPG normalizada al rango de referencia individual del paciente.
+- **nHBI** es el intervalo entre latidos consecutivos, normalizado de forma análoga.
+- **Los coeficientes de ponderación 0.7 y 0.3** reflejan la mayor contribución de la vasomotricidad periférica (capturada por PPGA) frente a la variación de la frecuencia cardíaca (capturada por HBI) en la respuesta nociceptiva [4].
 
 ## Procedimiento
 ## Test que vamos a realizar

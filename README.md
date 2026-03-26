@@ -34,7 +34,11 @@ donde:
 - **Los coeficientes de ponderación 0.7 y 0.3** reflejan la mayor contribución de la vasomotricidad periférica (capturada por PPGA) frente a la variación de la frecuencia cardíaca (capturada por HBI) en la respuesta nociceptiva [4].
 
 ## Procedimiento
-## Test que vamos a realizar
+Para llevar a cabo este laboratorio se empleo  el sensor MAX30102, que integra un pulsioxímetro y un monitor de frecuencia cardíaca, tiene dos LED uno rojo de 660nm y otro infrarrojo de 920nm, además tiene filtro, fotodetector y un conversor ADC de 16 bits [6]. 
+Este sensor que conecto al microcontrolador ESP32 y se diseño un código en MATLAB que captura esta señal resultante.
+En la captura de la señal un integrante del grupo coloca el dedo sobre el sensor y se configura el código para obtener una señal de 2 minutos. En los primeros 40 segundos el integrante esta sentado y en reposo, apenas llegue a los 40 segundos se le realiza la prueba de Cold Pressor Test y pasados otros 40 segundos el integrante vuelve a las condiciones inciales hasta completar los 2 minutos. Se toma nota de los valores del SPI que se alcanzan en cada uno de estos intervalos de tiempo.
+### Cold Pressor Test
+El CPT es una prueba cardiovascular que se basa en introducir la mano en un recipiente con agua helada durante un minuto es usada para inducir estrés, si el dolor se vuelve insoportable puede retirar la mano y es de gran ayuda para investigadores poder medir el umbral y la tolerancia. Debido a que en el laboratorio no se permite el ingreso de agua, se hizo una modificación de esta prueba, y consiste en usar una banda con tres compartimientos que adentro tienen bolitas de gel, congelarla y ponerla alrededor del paciente, esta prueba emula exacatamente el CPT pero sin la necesidad de agua.
 ## Adquisión de la señal
 ## Análisis
 ## Conclusiones
@@ -65,3 +69,6 @@ Reuter, R. Nitzschke y otros, “Validation of innovative techniques for
 monitoring nociception during general anesthesia: a clinical study using
 tetanic and intracutaneous electrical stimulation,” Anesthesiology, vol. 127,
 no. 2, pp. 272–283, 2017. https://doi.org/10.1097/ALN.0000000000001670.
+
+[6] “MAX30102 - Sensor de concentración de Oxígeno y Ritmo cardíaco - Electronilab,” Electronilab, Mar. 12, 2026. https://electronilab.co/tienda/max30100-sensor-de-concentracion-de-oxigeno-y-ritmo-cardiaco/?srsltid=AfmBOoqiTAVjVyqg8rbmHV2--vj8PzahtCs0zrUgqFnTVDIwkiPpI9yh
+

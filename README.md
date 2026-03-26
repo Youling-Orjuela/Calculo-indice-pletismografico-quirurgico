@@ -48,6 +48,46 @@ El Cold Pressor Test (CPT) es una prueba cardiovascular que consiste en introduc
 Debido a que en el laboratorio no se permite el uso de agua, se implementó una modificación del procedimiento. Esta consistió en el uso de una banda con tres compartimientos rellenos de gel, previamente congelados, la cual se colocó alrededor de la extremidad del participante. Este método permite emular el estímulo térmico del CPT sin necesidad de emplear agua, manteniendo el objetivo de inducir una respuesta fisiológica similar.
 
 ## Adquisión de la señal
+```
+MatLab
+clc;
+clear;
+close all;
+
+port = "COM6";
+baud = 115200;
+fs = 100;
+
+baselineDuration = 40;
+cptDuration = 40;
+defaultDuration = "120";
+
+refractoryTime = 0.40;
+dcWindowSec = 1.20;
+smoothSamples = 5;
+spiWinBeats = 5;
+invertSignal = true;
+alphaSPI = 0.25;
+
+wPPA = 0.33;
+wPPI = 0.67;
+
+ratioMin = 0.20;
+ratioMax = 2.00;
+```
+#Configuración inicial y parámetros del sistema
+Este bloque establece todos los parámetros de operación del sistema antes de iniciar la adquisición.
+
+port y baud definen la conexión serial con la ESP32. La tasa de 115200 baudios garantiza suficiente ancho de banda para transmitir muestras a 100 Hz sin pérdida de datos.
+fs = 100 corresponde a la frecuencia de muestreo en Hz. A 100 Hz se capturan 100 muestras por segundo, suficiente para resolver los componentes morfológicos de la señal PPG (cuya energía relevante está por debajo de 10 Hz).
+baselineDuration = 40 y cptDuration = 40 definen las dos fases experimentales principales: una fase de reposo basal (0–40 s) y una fase de estrés mediante Cold Pressor Test —CPT— (40–80 s). El CPT es un protocolo estándar en fisiología del estrés que consiste en exposición de la mano a agua helada, generando una respuesta simpática medible.
+refractoryTime = 0.40 impone un período refractario mínimo entre picos detectados (400 ms), equivalente a descartar frecuencias cardíacas superiores a 150 BPM, evitando detecciones espurias por ruido de alta frecuencia.
+dcWindowSec = 1.20 define la ventana temporal para estimar la componente de corriente continua (DC) de la señal PPG. La señal cruda del sensor incluye una componente DC lenta asociada a la absorción óptica basal del tejido, que debe eliminarse para aislar la componente pulsátil (AC).
+smoothSamples = 5 es el número de muestras empleadas en el suavizado por media móvil, que actúa como filtro paso-bajo simple para reducir ruido de alta frecuencia.
+invertSignal = true corrige la polaridad de la señal. Dependiendo del hardware del sensor, el pulso puede aparecer como una depresión en lugar de un pico; la inversión garantiza que los picos sistólicos sean máximos locales.
+alphaSPI = 0.25 es el coeficiente de suavizado exponencial del SPI. Con α = 0.25, cada nuevo valor tiene un peso del 25% y el historial acumulado el 75%, proporcionando estabilidad temporal al índice.
+wPPA = 0.33 y wPPI = 0.67 son los pesos de ponderación del PPA (Pulse Peak Amplitude) y PPI (Pulse-to-Pulse Interval) en el cálculo del SPI. Se asigna mayor peso al PPI porque el intervalo entre pulsos es un indicador más robusto de la actividad del sistema nervioso autónomo que la amplitud.
+ratioMin y ratioMax delimitan el rango válido de las razones normalizadas PPA/PPA_ref y PPI/PPI_ref, evitando que artefactos o latidos ectópicos distorsionen el cálculo.
 [![spi1.jpg](https://i.postimg.cc/g0r7VnL6/spi1.jpg)](https://postimg.cc/PLsKhf4t)
 [![spi2.jpg](https://i.postimg.cc/9FMyFT6p/spi2.jpg)](https://postimg.cc/jCpDMWdw)
 [![spi3.jpg](https://i.postimg.cc/pTWpcMxp/spi3.jpg)](https://postimg.cc/KKWG4V12)

@@ -1,6 +1,6 @@
 # Cálculo ambulatorio del índice pletismográfico quirúrgico (SPI)
 ## Introducción
-El dolor posoperatorio continúa siendo uno de los desafíos más relevantes en la aplicación actual anestésica. Se estima que entre el 20 % y el 80 % de los pacientes sometidos a procedimientos quirúrgicos experimentan dolor agudo posoperatorio de intensidad moderada a severa, lo que refleja un manejo analgésico intraoperatorio frecuentemente insuficiente [1]. Esta realidad impone la necesidad de contar con métodos objetivos y cuantitativos que permitan evaluar en tiempo real el equilibrio entre la activación nociceptiva y el efecto de la analgesia administrada durante la cirugía bajo anestesia general.
+El dolor posoperatorio continúa siendo uno de los desafíos más relevantes en la aplicación actual de los agentes anestésicos. Se estima que entre el 20 % y el 80 % de los pacientes sometidos a procedimientos quirúrgicos experimentan dolor agudo posoperatorio de intensidad moderada a severa, lo que refleja un manejo analgésico intraoperatorio frecuentemente insuficiente [1]. Esta realidad impone la necesidad de contar con métodos objetivos y cuantitativos que permitan evaluar en tiempo real el equilibrio entre la activación nociceptiva y el efecto de la analgesia administrada durante la cirugía bajo anestesia general.
 
 La nocicepción, entendida como el procesamiento neural de estímulos potencialmente dañinos, se distingue del dolor como experiencia subjetiva consciente. Bajo anestesia general, el paciente no reporta dolor, pero su sistema nervioso autónomo continúa respondiendo a los estímulos nociceptivos, generando cambios fisiológicos medibles como modificaciones en la frecuencia cardíaca, la vasomotricidad periférica y la variabilidad de la señal fotopletismográfica (PPG) [2]. Monitorizar estos cambios de forma continua y objetiva es, por lo tanto, fundamental para guiar la administración de analgésicos y reducir el riesgo de dolor posoperatorio.
 
@@ -12,7 +12,7 @@ La fotopletismografía (PPG) es una técnica óptica no invasiva que permite det
 - Componente continua (DC): Representa la absorción basal de luz por los tejidos y la sangre venosa, y varía lentamente con cambios en la perfusión tisular.
 
 Adicionalmente, del análisis temporal de la señal PPG se puede extraer el intervalo entre latidos (HBI, del inglés Heart Beat Interval), equivalente al intervalo R-R del electrocardiograma, cuyo inverso corresponde a la frecuencia cardíaca. Ante activación nociceptiva, el sistema nervioso simpático incrementa la frecuencia cardíaca, reduciendo el HBI [3].
-Estas dos variables —la amplitud de la onda de pulso (PPGA) y el intervalo entre latidos (HBI)— constituyen la base fisiológica sobre la que se construye el índice pletismográfico quirúrgico.
+Estas dos variables (la amplitud de la onda de pulso (PPGA) y el intervalo entre latidos (HBI)) constituyen la base fisiológica sobre la que se construye el índice pletismográfico quirúrgico.
 
 El índice pletismográfico quirúrgico (SPI), desarrollado por GE Healthcare, es un indicador adimensional derivado de la señal PPG que cuantifica el balance entre la nocicepción y la analgesia durante la anestesia general [3]. El SPI varía en un rango de 0 a 100, donde valores elevados indican una mayor activación nociceptiva (mayor estrés fisiológico) y valores bajos indican un estado analgésico adecuado.
 Clínicamente, el rango objetivo de SPI para una analgesia intraoperatoria adecuada se sitúa entre 20 y 50 [4]. Se recomienda mantener el SPI por debajo de 50 y evitar incrementos superiores a 10 unidades, ya que estos pueden indicar un estímulo doloroso no controlado [5].
@@ -26,6 +26,12 @@ La fórmula del SPI corresponde a una combinación lineal ponderada de estas dos
 $$
 SPI = 100 - (0.7 \cdot nPPGA + 0.3 \cdot nHBI) \times 100
 $$
+
+donde:
+
+- nPPGA es la amplitud pico a pico de la onda de pulso PPG normalizada al rango de referencia individual del paciente.
+- nHBI es el intervalo entre latidos consecutivos, normalizado de forma análoga.
+- Los coeficientes de ponderación 0.7 y 0.3 reflejan la mayor contribución de la vasomotricidad periférica (capturada por PPGA) frente a la variación de la frecuencia cardíaca (capturada por HBI) en la respuesta nociceptiva [4].
 
 ## Procedimiento
 ## Test que vamos a realizar

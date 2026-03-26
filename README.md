@@ -23,6 +23,10 @@ El índice pletismográfico quirúrgico se calcula a partir de dos característi
 
 La fórmula del SPI corresponde a una combinación lineal ponderada de estas dos variables normalizadas, representadas de la siguiente manera:
 
+$$
+SPI = 100 - (0.7 \cdot nPPGA + 0.3 \cdot nHBI) \times 100
+$$
+
 ## Procedimiento
 ## Test que vamos a realizar
 ## Adquisión de la señal

@@ -46,8 +46,27 @@ Durante cada uno de estos intervalos, se registraron los valores del índice ple
 El Cold Pressor Test (CPT) es una prueba cardiovascular que consiste en introducir la mano en un recipiente con agua fría (generalmente entre 0 y 4 °C) durante aproximadamente un minuto. Esta prueba se utiliza para inducir una respuesta de estrés fisiológico, permitiendo evaluar variables como la respuesta autonómica y la tolerancia al dolor. En caso de que el dolor se vuelva intolerable, el participante puede retirar la mano antes de completar el tiempo establecido [7].
 
 Debido a que en el laboratorio no se permite el uso de agua, se implementó una modificación del procedimiento. Esta consistió en el uso de una banda con tres compartimientos rellenos de gel, previamente congelados, la cual se colocó alrededor de la extremidad del participante. Este método permite emular el estímulo térmico del CPT sin necesidad de emplear agua, manteniendo el objetivo de inducir una respuesta fisiológica similar.
+
 ## Adquisión de la señal
+[![spi1.jpg](https://i.postimg.cc/g0r7VnL6/spi1.jpg)](https://postimg.cc/PLsKhf4t)
+[![spi2.jpg](https://i.postimg.cc/9FMyFT6p/spi2.jpg)](https://postimg.cc/jCpDMWdw)
+[![spi3.jpg](https://i.postimg.cc/pTWpcMxp/spi3.jpg)](https://postimg.cc/KKWG4V12)
+[![spi4.jpg](https://i.postimg.cc/ydx7S1sP/spi4.jpg)](https://postimg.cc/SXBBBpX2)
 ## Análisis
+• Análisis 1: Compare los valores del SPI obtenidos durante la práctica con
+los que frecuentemente se observan durante una cirugía para proporcionar
+el nivel óptimo de anestesia.
+• Análisis 2: Evalúe el alcance y las posibles limitaciones de emplear el
+sistema desarrollado para cuantificar el dolor que percibe una persona.
+
+El sistema desarrollado, basado en la señal PPG y el cálculo del SPI, permite evaluar de forma objetiva la respuesta fisiológica asociada a la nocicepción, a partir de cambios en la amplitud del pulso (PPGA) y el intervalo entre latidos (HBI). Esto lo convierte en una herramienta útil para monitorear el estrés y la activación del sistema nervioso autónomo de manera continua y no invasiva, especialmente en contextos donde el paciente no puede comunicar dolor.
+
+Sin embargo, su principal limitación es que el SPI no mide el dolor directamente, sino la nocicepción. El dolor es una experiencia subjetiva influenciada por factores emocionales y psicológicos que no se reflejan completamente en señales fisiológicas.
+
+Además, la señal PPG puede verse afectada por factores como el movimiento, la presión del sensor o la perfusión periférica, lo que impacta la precisión del SPI. También, respuestas fisiológicas similares pueden generarse por estrés o ansiedad, lo que puede llevar a interpretaciones erróneas.
+
+En conclusión, el sistema es útil para evaluar cambios fisiológicos asociados al estrés o nocicepción, pero debe considerarse como un indicador complementario, no como una medida directa del dolor.
+
 ## Conclusiones
 ## Referencias 
 [1] J. L. Apfelbaum, C. Chen, S. S. Mehta y T. J. Gan, “Postoperative pain

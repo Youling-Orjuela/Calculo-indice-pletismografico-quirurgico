@@ -821,6 +821,16 @@ SPI medio recuperación      : 50.56
 • Análisis 1: Compare los valores del SPI obtenidos durante la práctica con
 los que frecuentemente se observan durante una cirugía para proporcionar
 el nivel óptimo de anestesia.
+Los resultados obtenidos muestran un comportamiento coherente del SPI a lo largo de las tres fases del experimento. Durante la etapa de reposo (0–40 s), el SPI presentó un valor medio de 49.89, ubicándose dentro del rango clínico recomendado (20–50) para una adecuada analgesia intraoperatoria.
+
+Al aplicar el Cold Pressor Test (40–80 s), el SPI aumentó a un valor medio de 60.35, superando el rango óptimo. Este incremento es consistente con una mayor activación del sistema nervioso simpático ante un estímulo nociceptivo, lo que se traduce en vasoconstricción periférica y aumento de la frecuencia cardíaca.
+
+Finalmente, en la etapa de recuperación, el SPI descendió a 50.56, aproximándose nuevamente al valor basal, lo que indica una disminución de la respuesta al estrés una vez retirado el estímulo.
+
+Al comparar estos resultados con el contexto clínico, se observa que, aunque el sujeto no se encontraba bajo anestesia, el comportamiento del SPI sigue la misma lógica fisiológica: valores más altos reflejan mayor nocicepción. Sin embargo, los valores en reposo se encuentran cerca del límite superior del rango clínico, lo cual puede deberse a que el sujeto estaba consciente y a factores como estrés basal o condiciones experimentales.
+
+En conjunto, los resultados confirman que el sistema desarrollado es capaz de detectar cambios fisiológicos asociados a la nocicepción de manera consistente con lo reportado en la literatura.
+
 • Análisis 2: Evalúe el alcance y las posibles limitaciones de emplear el
 sistema desarrollado para cuantificar el dolor que percibe una persona.
 

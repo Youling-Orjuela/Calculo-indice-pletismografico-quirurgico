@@ -794,10 +794,29 @@ La escritura del carácter "P" (Pause/Stop) envía la señal de protocolo que or
 El uso de bloques try-catch independientes para cada operación garantiza que si una falla (por ejemplo, el puerto ya fue desconectado físicamente), las siguientes operaciones de limpieza se ejecuten de todas formas.
 Liberar correctamente el objeto serialport es crítico en MATLAB: si el objeto no se destruye apropiadamente, el puerto COM queda bloqueado y no puede ser abierto nuevamente hasta reiniciar MATLAB o desconectar y reconectar el dispositivo USB.
 
-[![spi1.jpg](https://i.postimg.cc/g0r7VnL6/spi1.jpg)](https://postimg.cc/PLsKhf4t)
-[![spi2.jpg](https://i.postimg.cc/9FMyFT6p/spi2.jpg)](https://postimg.cc/jCpDMWdw)
-[![spi3.jpg](https://i.postimg.cc/pTWpcMxp/spi3.jpg)](https://postimg.cc/KKWG4V12)
-[![spi4.jpg](https://i.postimg.cc/ydx7S1sP/spi4.jpg)](https://postimg.cc/SXBBBpX2)
+[![spi1.jpg](https://i.postimg.cc/kM0r8GRC/spi1.jpg)](https://postimg.cc/F1VnX9xC)
+[![spi2.jpg](https://i.postimg.cc/Gmb5Jycx/spi2.jpg)](https://postimg.cc/1fYBy4V8)
+[![spi3.jpg](https://i.postimg.cc/pd6cHcKq/spi3.jpg)](https://postimg.cc/1gDr0HCq)
+[![spi4.jpg](https://i.postimg.cc/k4R1XNc8/spi4.jpg)](https://postimg.cc/1nPcvqb5)
+
+### Datos obtenidos
+===== RESUMEN FINAL =====
+Muestras recibidas: 3006
+
+Picos detectados : 175
+
+PPA_ref          : 766.958333
+
+PPI_ref          : 0.720000 s
+
+SPI medio reposo (0-40 s)   : 49.89
+
+SPI medio CPT (40-80 s)     : 60.35
+
+SPI medio recuperación      : 50.56
+
+
+
 ## Análisis
 • Análisis 1: Compare los valores del SPI obtenidos durante la práctica con
 los que frecuentemente se observan durante una cirugía para proporcionar

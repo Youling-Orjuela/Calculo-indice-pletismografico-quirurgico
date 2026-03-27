@@ -48,7 +48,157 @@ El Cold Pressor Test (CPT) es una prueba cardiovascular que consiste en introduc
 Debido a que en el laboratorio no se permite el uso de agua, se implementó una modificación del procedimiento. Esta consistió en el uso de una banda con tres compartimientos rellenos de gel, previamente congelados, la cual se colocó alrededor de la extremidad del participante. Este método permite emular el estímulo térmico del CPT sin necesidad de emplear agua, manteniendo el objetivo de inducir una respuesta fisiológica similar.
 
 ## Adquisión de la señal
-# Configuración inicial y parámetros del sistema 
+## Librerías e instancias de hardware
+```
+#include <Wire.h>
+#include "MAX30105.h"
+#include "BluetoothSerial.h"
+
+MAX30105 particleSensor;
+BluetoothSerial SerialBT;
+
+const char* BT_NAME = "ESP32_MAX30102";
+```
+Este bloque declara las dependencias de software y crea las instancias de los dos periféricos principales del sistema.
+
+Wire.h es la librería estándar de Arduino que implementa el protocolo de comunicación I2C (Inter-Integrated Circuit), también llamado TWI. I2C es un bus serie síncrono de dos hilos (SDA para datos, SCL para reloj) que permite conectar múltiples dispositivos esclavos a un único maestro usando solo dos líneas. El MAX30102 se comunica exclusivamente por I2C, haciendo esta librería indispensable.
+MAX30105.h es el driver de SparkFun para la familia MAX30101/MAX30102/MAX30105 de sensores de oximetría y frecuencia cardíaca de Maxim Integrated. Encapsula toda la comunicación de bajo nivel con el sensor (lectura y escritura de registros I2C, gestión del FIFO interno del sensor, configuración de LEDs y ADC) exponiendo una API de alto nivel. Aunque el chip físico es el MAX30102, la librería MAX30105 es compatible por la similitud de registros entre ambos modelos.
+MAX30105 particleSensor instancia el objeto driver del sensor. Toda la interacción con el hardware del MAX30102 se realizará a través de los métodos de este objeto.
+BluetoothSerial SerialBT instancia el stack de comunicación Bluetooth SPP, exactamente igual que en el firmware GSR. El nombre "ESP32_MAX30102" identifica el dispositivo como el sensor de fotopletismografía en el entorno Bluetooth del laboratorio, diferenciándolo del "ESP32_GSR" si ambos operan simultáneamente.
+
+## Parámetros de hardware y frecuencia de muestreo
+```
+const int SDA_PIN = 21;
+const int SCL_PIN = 22;
+
+const int fs = 100;
+const int dt_ms = 1000 / fs;
+```
+Este bloque define la asignación de pines físicos y los parámetros de temporización del sistema de adquisición.
+
+SDA_PIN = 21 y SCL_PIN = 22 son los pines I2C por defecto del ESP32 en la mayoría de las placas de desarrollo. GPIO 21 corresponde a la línea de datos bidireccional (SDA) y GPIO 22 a la línea de reloj (SCL). Aunque el ESP32 permite reasignar el bus I2C a casi cualquier GPIO mediante la función Wire.begin(SDA, SCL), usar los pines predeterminados garantiza la máxima compatibilidad con el hardware de la placa.
+fs = 100 Hz define la frecuencia a la que MATLAB recibirá muestras. Esta elección no es arbitraria: la señal PPG tiene componentes relevantes hasta aproximadamente 10–15 Hz (frecuencia cardíaca fundamental y sus primeros armónicos, más la morfología del pulso), por lo que 100 Hz cumple holgadamente el criterio de Nyquist con un margen de seguridad de 3–5x. Frecuencias más altas no aportarían información adicional pero aumentarían la carga del canal Bluetooth y el costo computacional del procesamiento en MATLAB.
+dt_ms = 1000 / fs = 10 ms es el período de muestreo. A diferencia del firmware GSR (40 ms a 25 Hz), aquí el período es 4 veces más corto, lo que significa que el bucle loop() se ejecuta 100 veces por segundo. Esto impone restricciones más estrictas sobre el tiempo de ejecución de cada iteración: todas las operaciones dentro del bucle deben completarse en menos de 10 ms para mantener la cadencia de muestreo.
+
+## Máquina de estados simplificada
+```
+enum State { IDLE, RUN };
+State st = IDLE;
+```
+A diferencia del firmware GSR que requería cuatro estados para gestionar un protocolo de calibración de dos fases, el firmware PPG implementa una máquina de estados mínima de dos estados.
+Esta simplificación es justificada por la naturaleza diferente del procesamiento: el sensor MAX30102 no requiere calibración en el microcontrolador porque toda la normalización, eliminación de componente DC y estimación de referencias basales se realiza en MATLAB con mayor capacidad de cómputo y flexibilidad algorítmica. El firmware de la ESP32 tiene una única responsabilidad: adquirir y transmitir la señal cruda con la menor latencia y el menor procesamiento posible.
+
+IDLE: El dispositivo está conectado pero no transmite datos en formato de streaming. Puede emitir tramas de monitoreo con etiqueta IDLE para indicar que está activo, pero sin generar carga significativa en el canal Bluetooth ni en el buffer de MATLAB.
+RUN: Modo de adquisición activa. Cada muestra del sensor se transmite inmediatamente a MATLAB con su timestamp, formando el flujo de datos que alimenta el algoritmo de detección de pulso y cálculo del SPI.
+
+La transición entre estados está controlada exclusivamente por comandos del host ('S' para iniciar, 'P' para pausar), lo que otorga a MATLAB el control total sobre el ciclo de vida de la sesión de adquisición.
+
+## Función setup: inicialización del hardware
+```
+void setup() {
+  Serial.begin(115200);
+  Wire.begin(SDA_PIN, SCL_PIN);
+
+  if (!SerialBT.begin(BT_NAME)) {
+    while (true) delay(1000);
+  }
+
+  if (!particleSensor.begin(Wire, I2C_SPEED_FAST)) {
+    SerialBT.println("ERROR,MAX30102_NOT_FOUND");
+    while (true) delay(1000);
+  }
+
+  particleSensor.setup(60, 4, 2, 100, 411, 4096);
+
+  particleSensor.setPulseAmplitudeRed(0x1F);
+  particleSensor.setPulseAmplitudeIR(0x1F);
+  particleSensor.setPulseAmplitudeGreen(0);
+
+  st = IDLE;
+  SerialBT.println("READY,SEND_S_TO_START");
+}
+```
+Inicialización del hardware en setup()
+
+La función setup() inicializa secuencialmente todos los subsistemas del hardware en orden de dependencia.
+
+Inicialización del bus I2C
+
+La instrucción Wire.begin(SDA_PIN, SCL_PIN) configura el ESP32 como maestro I2C en los pines especificados. Esta instrucción debe ejecutarse antes de cualquier intento de comunicación con el sensor MAX30102.
+
+Detección y verificación del sensor
+
+La instrucción particleSensor.begin(Wire, I2C_SPEED_FAST) intenta detectar el MAX30102 en el bus I2C a 400 kHz, es decir, en modo Fast.
+
+Internamente, la librería lee el registro de identificación del chip (REG_PART_ID = 0xFF) y verifica que el valor retornado sea 0x15, que corresponde al identificador único del MAX30102.
+
+Si la verificación falla, ya sea porque el sensor no está conectado, existe un problema de alimentación o la dirección I2C es incorrecta, el firmware entra en un estado de fallo seguro. En ese caso transmite el mensaje de error "ERROR,MAX30102_NOT_FOUND" antes de bloquearse.
+
+El modo I2C_SPEED_FAST a 400 kHz es preferible al modo estándar de 100 kHz porque reduce el tiempo de transferencia de cada lectura del FIFO, dejando más tiempo de CPU disponible para otras tareas dentro del bucle principal.
+
+Configuración del sensor
+
+La instrucción particleSensor.setup(60, 4, 2, 100, 411, 4096) configura el hardware interno del MAX30102.
+
+En esta configuración, brightness = 60 define la corriente de los LEDs según la escala interna del driver. sampleAverage = 4 indica que el chip promedia internamente cuatro muestras antes de almacenarlas en el FIFO. ledMode = 2 activa el modo dual, usando simultáneamente los LEDs rojo e infrarrojo. sampleRate = 100 establece una frecuencia de muestreo interna de 100 Hz. pulseWidth = 411 define un ancho de pulso de 411 microsegundos, y adcRange = 4096 selecciona el rango del ADC correspondiente a la máxima sensibilidad.
+
+El ancho de pulso de 411 µs es el máximo permitido por el MAX30102 a 100 Hz, lo que maximiza la energía óptica recibida por el fotodetector y, por tanto, mejora la relación señal-ruido de la señal PPG.
+
+El promediado de 4 muestras internas se realiza directamente en hardware dentro del chip antes de que los datos lleguen al FIFO. Esto permite reducir el ruido sin agregar carga computacional adicional a la ESP32.
+
+Configuración de amplitudes de los LEDs
+
+Las instrucciones setPulseAmplitudeRed(0x1F) y setPulseAmplitudeIR(0x1F) fijan la corriente de los LEDs rojo e infrarrojo en un valor moderado.
+
+El valor 0x1F, que corresponde a 31 en decimal, equivale aproximadamente a una corriente de 6 mA.
+
+Por otra parte, el LED verde se apaga explícitamente mediante setPulseAmplitudeGreen(0) porque no se utiliza para PPG estándar. El LED verde suele ser útil en mediciones sobre la muñeca, pero tiene menor penetración en el tejido en comparación con el infrarrojo.
+
+## Bucle principal: recepción de comandos y despacho de estados
+```
+void loop() {
+  while (SerialBT.available()) {
+    char c = (char)SerialBT.read();
+
+    if (c == 'S' || c == 's') {
+      st = RUN;
+      SerialBT.println("STREAM,START");
+    }
+
+    if (c == 'P' || c == 'p') {
+      st = IDLE;
+      SerialBT.println("STREAM,STOP");
+    }
+  }
+
+  long irRaw = particleSensor.getIR();
+  uint32_t t = millis();
+
+  if (st == IDLE) {
+    SerialBT.printf("%lu,%ld,IDLE\n", (unsigned long)t, irRaw);
+    delay(dt_ms);
+    return;
+  }
+
+  if (st == RUN) {
+    SerialBT.printf("%lu,%ld\n", (unsigned long)t, irRaw);
+    delay(dt_ms);
+    return;
+  }
+}
+```
+El bucle principal implementa el despachador de la FSM con una arquitectura de polling no bloqueante que combina recepción de comandos, lectura del sensor y transmisión de datos en cada iteración.
+Recepción de comandos:
+El bloque while (SerialBT.available()) procesa todos los bytes pendientes en el buffer de recepción Bluetooth antes de leer el sensor. Los comandos aceptados son 'S'/'s' (Start) y 'P'/'p' (Pause), en mayúscula y minúscula para mayor tolerancia a errores de escritura. Cada transición de estado se confirma al host con un mensaje de protocolo ("STREAM,START" o "STREAM,STOP"), permitiendo que MATLAB sincronice su estado interno con el del firmware.
+Lectura del sensor MAX30102:
+particleSensor.getIR() lee el valor más reciente del canal infrarrojo desde el FIFO circular interno del MAX30102. El FIFO del sensor puede almacenar hasta 32 muestras, actuando como buffer ante latencias en el bucle principal. A 100 Hz con un dt_ms de 10 ms, idealmente se consume una muestra por iteración, manteniendo el FIFO casi vacío. millis() captura el timestamp inmediatamente después de la lectura, minimizando la jitter de temporización entre la muestra y su marca de tiempo.
+Formato de transmisión diferenciado por estado:
+
+En IDLE: timestamp_ms,IR_raw,IDLE — trama completa con etiqueta de estado, útil para monitoreo y diagnóstico.
+En RUN: timestamp_ms,IR_raw — trama mínima sin etiqueta, reduciendo el tamaño del paquete Bluetooth y el tiempo de serialización. Este es exactamente el formato que el código MATLAB espera parsear en su bucle de adquisición: parts(1) = timestamp, parts(2) = valor IR.
+
+La separación del formato entre estados elimina la necesidad de que MATLAB filtre etiquetas de texto durante la adquisición activa, reduciendo la carga de parseo en el host y minimizando la latencia del procesamiento en tiempo real.
+## Configuración inicial y parámetros del sistema 
 ```
 MatLab
 clc;

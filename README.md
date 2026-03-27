@@ -801,6 +801,7 @@ Liberar correctamente el objeto serialport es crítico en MATLAB: si el objeto n
 
 ### Datos obtenidos
 ===== RESUMEN FINAL =====
+
 Muestras recibidas: 3006
 
 Picos detectados : 175

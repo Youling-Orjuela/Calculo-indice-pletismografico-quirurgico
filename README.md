@@ -411,11 +411,14 @@ if ~baselineReady && pk_time >= baselineDuration
                             end
 ```
 Este bloque implementa la calibración individual del sistema, que es el mecanismo que hace al SPI independiente de las diferencias anatómicas y fisiológicas entre sujetos.
-El enfoque de normalización intra-sujeto es fundamental: dado que el PPA y el PPI tienen valores absolutos que varían considerablemente entre individuos (por diferencias en el grosor del dedo, pigmentación, temperatura basal, tono vascular en reposo y frecuencia cardíaca en reposo), no es posible establecer umbrales fijos de estrés aplicables universalmente. La solución es normalizar cada variable respecto a sus propios valores de referencia en reposo, haciendo que el índice resultante mida cambios relativos respecto al estado basal del propio sujeto.
-La función estimateBaselineRefs calcula las referencias como la mediana de los valores válidos durante los primeros 40 s:
-PPAref=mediana{PPAi:ti≤40 s,PPAi>0,0.3≤PPIi≤2.0}PPA_{ref} = \text{mediana}\{PPA_i : t_i \leq 40\text{ s}, PPA_i > 0, 0.3 \leq PPI_i \leq 2.0\}PPAref​=mediana{PPAi​:ti​≤40 s,PPAi​>0,0.3≤PPIi​≤2.0}
-Se utiliza la mediana en lugar de la media porque es un estimador robusto frente a outliers, que en señales PPG pueden provenir de artefactos de movimiento, latidos ectópicos o interferencias electromagnéticas durante la fase de reposo.
-El criterio de validez okRef exige un mínimo de 8 latidos válidos (≈ 8–10 s a frecuencia cardíaca normal), garantizando que la referencia tenga representatividad estadística suficiente. Si no se alcanza este mínimo, el sistema espera sin calcular SPI antes de tener una referencia confiable.
+
+El enfoque de normalización intra-sujeto es fundamental. Dado que el PPA y el PPI tienen valores absolutos que varían considerablemente entre individuos, debido a diferencias en el grosor del dedo, pigmentación, temperatura basal, tono vascular en reposo y frecuencia cardíaca en reposo, no es posible establecer umbrales fijos de estrés aplicables universalmente. La solución es normalizar cada variable respecto a sus propios valores de referencia en reposo, de manera que el índice resultante mida cambios relativos respecto al estado basal del propio sujeto.
+
+La función estimateBaselineRefs calcula las referencias como la mediana de los valores válidos durante los primeros 40 segundos. Para ello, toma únicamente los latidos cuyo tiempo sea menor o igual a 40 s, con valores de PPA mayores que cero y valores de PPI dentro del rango de 0.3 a 2.0 segundos.
+
+Se utiliza la mediana en lugar de la media porque es un estimador robusto frente a valores atípicos, los cuales en señales PPG pueden provenir de artefactos de movimiento, latidos ectópicos o interferencias electromagnéticas durante la fase de reposo.
+
+El criterio de validez okRef exige un mínimo de 8 latidos válidos, lo que corresponde aproximadamente a entre 8 y 10 segundos en una frecuencia cardíaca normal. Esto garantiza que la referencia tenga suficiente representatividad estadística. Si no se alcanza este mínimo, el sistema espera y no calcula el SPI hasta contar con una referencia confiable.
 
 ```
 elapsed = toc(tStart);
@@ -462,14 +465,15 @@ end
 ```
 Este bloque gestiona la visualización dinámica y el reporte de estadísticas por fase durante la adquisición.
 
-El protocolo experimental sigue tres fases secuenciales: Reposo (0–40 s, calibración basal), CPT (40–80 s, estímulo estresante) y Recuperación (80 s en adelante, retorno al estado basal). La indicación visual de la fase activa en pantalla orienta al operador durante la sesión sin necesidad de consultar un cronómetro externo.
+El protocolo experimental sigue tres fases secuenciales: Reposo (0 a 40 s, calibración basal), CPT (40 a 80 s, estímulo estresante) y Recuperación (80 s en adelante, retorno al estado basal). La indicación visual de la fase activa en pantalla orienta al operador durante la sesión sin necesidad de consultar un cronómetro externo.
+
 Las banderas summary40Shown y summary80Shown garantizan que los resúmenes estadísticos se imprimen exactamente una vez al completarse cada fase, evitando salidas redundantes en consola.
-El escalado automático del eje Y utiliza la desviación absoluta mediana (MAD) de la señal en una ventana de 8 s:
 
-MAD=mediana(∣xi−mediana(x)∣)\text{MAD} = \text{mediana}(|x_i - \text{mediana}(x)|)MAD=mediana(∣xi​−mediana(x)∣)
-La MAD es un estimador de dispersión robusto frente a artefactos: a diferencia de la desviación estándar, no se ve distorsionada por valores atípicos grandes causados por movimientos súbitos del dedo. El rango del eje se fija en 8 × MAD alrededor de la mediana, lo que garantiza que la señal ocupe apropiadamente la ventana visual incluso ante cambios en la amplitud del pulso.
+El escalado automático del eje Y utiliza la desviación absoluta mediana, o MAD, de la señal en una ventana de 8 segundos. La MAD se calcula como la mediana del valor absoluto de la diferencia entre cada muestra y la mediana de la señal en esa ventana.
 
-drawnow limitrate nocallbacks actualiza la figura de forma eficiente: limitrate limita la frecuencia de renderizado a la tasa máxima que el sistema gráfico puede manejar sin saturarse, y nocallbacks evita que los eventos de interfaz (clics, redimensionado) interrumpan el procesamiento numérico durante la actualización.
+La MAD es un estimador de dispersión robusto frente a artefactos. A diferencia de la desviación estándar, no se ve distorsionada por valores atípicos grandes causados por movimientos súbitos del dedo. El rango del eje se fija en 8 veces la MAD alrededor de la mediana, lo que garantiza que la señal ocupe apropiadamente la ventana visual incluso ante cambios en la amplitud del pulso.
+
+La instrucción drawnow limitrate nocallbacks actualiza la figura de forma eficiente. La opción limitrate limita la frecuencia de renderizado a la tasa máxima que el sistema gráfico puede manejar sin saturarse, mientras que nocallbacks evita que los eventos de interfaz, como clics o redimensionados, interrumpan el procesamiento numérico durante la actualización.
 
 ```
 fprintf('\n===== RESUMEN FINAL =====\n');
@@ -579,29 +583,30 @@ function [spiValues, spiTimes, ppaRatioHist, ppiRatioHist] = ...
 end
 ```
 Esta es la función central del sistema: implementa el cálculo del Stress Photoplethysmography Index (SPI) a partir de las razones normalizadas de PPA y PPI.
+
 El algoritmo procede en cuatro etapas por cada latido:
-1. Normalización y limitación de rango:
-PPA^i=clip(PPAiPPAref,0.20,2.00)\hat{PPA}_i = \text{clip}\left(\frac{PPA_i}{PPA_{ref}}, 0.20, 2.00\right)PPA^i​=clip(PPAref​PPAi​​,0.20,2.00)
-PPI^i=clip(PPIiPPIref,0.20,2.00)\hat{PPI}_i = \text{clip}\left(\frac{PPI_i}{PPI_{ref}}, 0.20, 2.00\right)PPI^i​=clip(PPIref​PPIi​​,0.20,2.00)
-La función clip limita las razones al intervalo [0.20, 2.00], evitando que artefactos extremos (por ejemplo, un PPA casi nulo por movimiento) produzcan valores de SPI fuera del rango interpretable. En condiciones normales, estas razones oscilan en torno a 1.0 durante el reposo.
-2. Suavizado por ventana de latidos:
-PPAˉ=1W∑j=i−W+1iPPA^j,PPIˉ=1W∑j=i−W+1iPPI^j\bar{PPA} = \frac{1}{W}\sum_{j=i-W+1}^{i}\hat{PPA}_j, \quad \bar{PPI} = \frac{1}{W}\sum_{j=i-W+1}^{i}\hat{PPI}_jPPAˉ=W1​j=i−W+1∑i​PPA^j​,PPIˉ=W1​j=i−W+1∑i​PPI^j​
-Se promedian las últimas winBeats = 5 razones válidas. Esto reduce la variabilidad latido-a-latido intrínseca de las señales fisiológicas (variabilidad de la frecuencia cardíaca normal) sin introducir latencias excesivas en la detección de cambios por estrés.
-3. Cálculo del score de estrés y escalado al rango [0, 100]:
-stressScore=wPPA(1−PPAˉ)+wPPI(1−PPIˉ)\text{stressScore} = w_{PPA}(1 - \bar{PPA}) + w_{PPI}(1 - \bar{PPI})stressScore=wPPA​(1−PPAˉ)+wPPI​(1−PPIˉ)
-SPIinst=50+50×stressScoreSPI_{inst} = 50 + 50 \times \text{stressScore}SPIinst​=50+50×stressScore
-La lógica del índice es la siguiente: en reposo, PPAˉ≈1\bar{PPA} \approx 1
-PPAˉ≈1 y PPIˉ≈1\bar{PPI} \approx 1
-PPIˉ≈1, por lo que
-stressScore ≈ 0 y SPI ≈ 50. Bajo estrés, la vasoconstricción reduce el PPA (PPAˉ<1\bar{PPA} < 1
-PPAˉ<1) y la taquicardia reduce el PPI (PPIˉ<1\bar{PPI} < 1
-PPIˉ<1), haciendo que ambos términos de
-stressScore sean positivos, incrementando el SPI por encima de 50. El escalado por 50 garantiza que el rango teórico completo [0, 100] sea alcanzable.
-4. Suavizado exponencial temporal:
-SPIi=α⋅SPIinst+(1−α)⋅SPIi−1SPI_i = \alpha \cdot SPI_{inst} + (1-\alpha) \cdot SPI_{i-1}SPIi​=α⋅SPIinst​+(1−α)⋅SPIi−1​
-Con α=0.25\alpha = 0.25
-α=0.25, el filtro exponencial tiene una constante de tiempo de aproximadamente τ=−1/ln⁡(1−α)≈3.5\tau = -1/\ln(1-\alpha) \approx 3.5
-τ=−1/ln(1−α)≈3.5 latidos ≈ 3–4 segundos a frecuencia cardíaca normal. Esto proporciona estabilidad visual al índice sin enmascarar tendencias sostenidas como las inducidas por el CPT.
+
+1. Normalización y limitación de rango
+
+Primero se calcula la razón entre el valor actual y su valor de referencia basal tanto para el PPA como para el PPI. Luego, estas razones se limitan al intervalo entre 0.20 y 2.00 mediante una función de recorte o clip.
+
+La función clip evita que artefactos extremos, por ejemplo un PPA casi nulo debido a movimiento, generen valores de SPI fuera del rango interpretable. En condiciones normales, estas razones oscilan alrededor de 1.0 durante el reposo.
+
+2. Suavizado por ventana de latidos
+
+Después, se promedian las últimas winBeats = 5 razones válidas de PPA y PPI. Este promedio reduce la variabilidad natural latido a latido presente en las señales fisiológicas, como la variabilidad normal de la frecuencia cardíaca, sin introducir una latencia excesiva en la detección de cambios asociados al estrés.
+
+3. Cálculo del puntaje de estrés y escalado al rango de 0 a 100
+
+A partir de esos promedios suavizados se calcula un puntaje de estrés ponderado, usando los pesos asignados a PPA y PPI. La lógica del índice es la siguiente: en reposo, los valores normalizados promediados de PPA y PPI son cercanos a 1, por lo que el puntaje de estrés es cercano a 0 y el SPI se ubica alrededor de 50.
+
+Bajo estrés, la vasoconstricción reduce el PPA y la taquicardia reduce el PPI. Como ambos valores promediados pasan a ser menores que 1, los términos del puntaje de estrés se vuelven positivos y el SPI aumenta por encima de 50. El escalado aplicado permite que el índice se exprese en un rango teórico de 0 a 100.
+
+4. Suavizado exponencial temporal
+
+Finalmente, el SPI instantáneo se filtra mediante un suavizado exponencial, combinando una fracción del valor actual con una fracción del valor anterior. Con alpha = 0.25, este filtro tiene una constante de tiempo aproximada de 3.5 latidos, lo que equivale a unos 3 a 4 segundos para una frecuencia cardíaca normal.
+
+Este suavizado proporciona mayor estabilidad visual al índice, evitando oscilaciones bruscas, pero sin ocultar tendencias sostenidas como las inducidas por el CPT.
 ```
 function clearSerialPort(s)
     try

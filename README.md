@@ -818,9 +818,8 @@ SPI medio recuperación      : 50.56
 
 
 ## Análisis
-• Análisis 1: Compare los valores del SPI obtenidos durante la práctica con
-los que frecuentemente se observan durante una cirugía para proporcionar
-el nivel óptimo de anestesia.
+• Análisis 1: Compare los valores del SPI obtenidos durante la práctica con los que frecuentemente se observan durante una cirugía para proporcionar el nivel óptimo de anestesia.
+
 Los resultados obtenidos muestran un comportamiento coherente del SPI a lo largo de las tres fases del experimento. Durante la etapa de reposo (0–40 s), el SPI presentó un valor medio de 49.89, ubicándose dentro del rango clínico recomendado (20–50) para una adecuada analgesia intraoperatoria.
 
 Al aplicar el Cold Pressor Test (40–80 s), el SPI aumentó a un valor medio de 60.35, superando el rango óptimo. Este incremento es consistente con una mayor activación del sistema nervioso simpático ante un estímulo nociceptivo, lo que se traduce en vasoconstricción periférica y aumento de la frecuencia cardíaca.

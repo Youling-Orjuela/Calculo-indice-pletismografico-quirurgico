@@ -48,6 +48,7 @@ El Cold Pressor Test (CPT) es una prueba cardiovascular que consiste en introduc
 Debido a que en el laboratorio no se permite el uso de agua, se implementó una modificación del procedimiento. Esta consistió en el uso de una banda con tres compartimientos rellenos de gel, previamente congelados, la cual se colocó alrededor de la extremidad del participante. Este método permite emular el estímulo térmico del CPT sin necesidad de emplear agua, manteniendo el objetivo de inducir una respuesta fisiológica similar.
 
 ## Adquisión de la señal
+# Configuración inicial y parámetros del sistema 
 ```
 MatLab
 clc;
@@ -75,7 +76,6 @@ wPPI = 0.67;
 ratioMin = 0.20;
 ratioMax = 2.00;
 ```
-## Configuración inicial y parámetros del sistema 
 
 Este bloque establece todos los parámetros de operación del sistema antes de iniciar la adquisición.
 
@@ -90,6 +90,7 @@ alphaSPI = 0.25 es el coeficiente de suavizado exponencial del SPI. Con α = 0.2
 wPPA = 0.33 y wPPI = 0.67 son los pesos de ponderación del PPA (Pulse Peak Amplitude) y PPI (Pulse-to-Pulse Interval) en el cálculo del SPI. Se asigna mayor peso al PPI porque el intervalo entre pulsos es un indicador más robusto de la actividad del sistema nervioso autónomo que la amplitud.
 ratioMin y ratioMax delimitan el rango válido de las razones normalizadas PPA/PPA_ref y PPI/PPI_ref, evitando que artefactos o latidos ectópicos distorsionen el cálculo.
 
+## Entrada de usuario y configuración del puerto serial
 ```
 answer = inputdlg( ...
     "Ingrese la duración de captura en segundos:", ...
@@ -122,6 +123,7 @@ s.Timeout = 0.05 establece un tiempo máximo de espera de 50 ms para operaciones
 onCleanup(@()clearSerialPort(s)) registra una función de limpieza que se ejecuta automáticamente cuando el script termina, ya sea normalmente o por error. Esto garantiza que el puerto serial siempre se libere correctamente.
 El pause(2) inicial da tiempo al microcontrolador para estabilizarse después de la apertura del puerto (muchas placas ESP32 se reinician al detectar una conexión serial). La escritura del carácter "S" (Start) es la señal de protocolo que ordena al firmware comenzar la transmisión de datos.
 
+## Inicialización de buffers y variables de estado
 ```
 Nmax = max(6000, ceil(duration * fs * 2));
 t_ms = zeros(Nmax,1);
@@ -175,6 +177,7 @@ hasValley actúa como condición de validez: un pico sistólico solo se registra
 Los vectores peak_times, peak_values, ppa_values y ppi_values crecen dinámicamente con cada latido detectado y constituyen la base de datos de características morfológicas de la señal PPG a lo largo del tiempo.
 baselineReady actúa como bandera que separa el período de calibración basal del período de análisis activo. Hasta que no se hayan acumulado suficientes latidos en los primeros 40 s, el SPI no se calcula.
 
+## Construcción de la interfaz gráfica en tiempo real
 ```
 figRT = figure('Name','PPG en tiempo real','NumberTitle','off');
 axRT = axes(figRT);
@@ -212,6 +215,7 @@ Se crean tres líneas animadas independientes: la señal PPG procesada (gris/neg
 Los cuatro objetos de texto (txtPhase, txtSPI, txtPeaks, txtBPM) se actualizan en el bucle principal con set(..., 'String', ...), que es significativamente más rápido que eliminar y recrear objetos de texto.
 tStart = tic inicia el cronómetro de alta resolución de MATLAB que controla la duración total de la sesión. lastDraw = tic controla la frecuencia máxima de actualización gráfica, limitada a aproximadamente 33 fps (cada 30 ms) para no saturar el hilo de renderizado.
 
+## Bucle principal de adquisición y procesamiento
 ```
 while toc(tStart) < duration && ishandle(figRT)
 
@@ -260,6 +264,7 @@ La estrategia de acumulación en buffer y separación por splitlines maneja corr
 Las líneas que comienzan con "READY", "STREAM", "ERROR", "CAL" o "TH" son mensajes de protocolo del firmware de la ESP32 (diagnóstico, calibración, umbrales) y se imprimen en consola sin procesamiento numérico.
 El formato de datos esperado es timestamp_ms,valor_IR, separado por coma. La validación con isnan descarta cualquier línea malformada o corrupta sin interrumpir la captura.
 
+## Procesamiento digital de la señal PPG
 ```
 k = k + 1;
             if k > length(t_ms)
@@ -301,6 +306,7 @@ Inversión de señal: Dependiendo del diseño óptico del sensor (reflexión vs.
 
 El resultado xProc(k) es la señal PPG procesada, centrada en cero, con amplitud proporcional a la variación del volumen sanguíneo en el lecho capilar del dedo.
 
+## Detección de picos y valles (Algoritmo del Alpinista)
 ```
 if k >= 3
 
@@ -346,6 +352,7 @@ La condición hasValley exige que cada pico sistólico esté precedido por un va
 El período refractario (refractoryTime = 0.4 s) descarta cualquier pico detectado dentro de los 400 ms posteriores al último pico válido. Este umbral corresponde a una frecuencia cardíaca máxima de 150 BPM, por encima de la cual se considera que la detección es un artefacto. Esta técnica es análoga al período refractario absoluto del potencial de acción cardíaco, donde el tejido es inexcitable independientemente del estímulo.
 La ventaja de este algoritmo respecto a métodos basados en ventanas deslizantes (Pan-Tompkins, umbral adaptativo) es su latencia mínima: el pico se detecta en la muestra inmediatamente posterior al máximo, con un retardo de exactamente 1/fs = 10 ms.
 
+##  Extracción de características morfológicas del pulso
 ```
 if ~isnan(lastValleyValue)
                                 ppa_now = pk_value - lastValleyValue;
@@ -380,6 +387,7 @@ PPIi=tpico,i−tpico,i−1PPI_i = t_{pico,i} - t_{pico,i-1}PPIi​=tpico,i​−
 El PPI es el equivalente fotopletismográfico del intervalo RR del ECG. A partir de él se calcula la frecuencia cardíaca instantánea: BPM = 60 / PPI. El PPI es el reflejo más directo de la modulación autonómica del nódulo sinusal: la activación simpática acorta el PPI (taquicardia) mientras que el tono parasimpático lo prolonga (bradicardia). En el contexto del CPT, se espera una reducción del PPI (aumento de BPM) como respuesta simpática al estrés por frío.
 Ambas variables son complementarias: el PPA refleja principalmente la rama vasomotora del sistema simpático, mientras que el PPI refleja la rama cronótropa (regulación de la frecuencia cardíaca). Su combinación ponderada en el SPI proporciona una estimación más robusta del estado autonómico que cualquiera de las dos por separado.
 
+## Cálculo de la referencia basal y activación del SPI
 ```
 if ~baselineReady && pk_time >= baselineDuration
                                 [ppaRef, ppiRef, okRef] = estimateBaselineRefs( ...
@@ -420,6 +428,7 @@ Se utiliza la mediana en lugar de la media porque es un estimador robusto frente
 
 El criterio de validez okRef exige un mínimo de 8 latidos válidos, lo que corresponde aproximadamente a entre 8 y 10 segundos en una frecuencia cardíaca normal. Esto garantiza que la referencia tenga suficiente representatividad estadística. Si no se alcanza este mínimo, el sistema espera y no calcula el SPI hasta contar con una referencia confiable.
 
+## Actualización de la interfaz y control de fases experimentales
 ```
 elapsed = toc(tStart);
 
@@ -475,6 +484,7 @@ La MAD es un estimador de dispersión robusto frente a artefactos. A diferencia 
 
 La instrucción drawnow limitrate nocallbacks actualiza la figura de forma eficiente. La opción limitrate limita la frecuencia de renderizado a la tasa máxima que el sistema gráfico puede manejar sin saturarse, mientras que nocallbacks evita que los eventos de interfaz, como clics o redimensionados, interrumpan el procesamiento numérico durante la actualización.
 
+## Resumen final y generación de figuras de análisis
 ```
 fprintf('\n===== RESUMEN FINAL =====\n');
 fprintf('Muestras recibidas: %d\n', numel(irRaw));
@@ -503,6 +513,8 @@ SPI CPT > 50: Un incremento del SPI durante el CPT indica activación simpática
 SPI recuperación → 50: La vuelta progresiva del SPI hacia 50 refleja la recuperación del tono autonómico basal tras retirar el estímulo estresante.
 
 Las figuras generadas a continuación permiten una validación visual completa de la sesión, mostrando la señal cruda, la señal procesada, la detección de picos y valles, la evolución temporal del SPI y las razones normalizadas de PPA y PPI.
+
+##  Función estimateBaselineRefs
 ```
 function [ppaRef, ppiRef, okRef] = estimateBaselineRefs(peak_times, ppa_values, ppi_values, baselineDuration)
 
@@ -532,6 +544,7 @@ nnz(idx) >= 8: Exige al menos 8 latidos válidos para que la mediana tenga signi
 
 La elección de la mediana como estimador de centralidad es deliberada: es resistente a la presencia de hasta el 50% de valores atípicos (punto de ruptura del 50%), lo que la hace significativamente más robusta que la media aritmética en señales biológicas con artefactos esporádicos.
 
+## Función computeSPIClinicalScaled
 ```
 function [spiValues, spiTimes, ppaRatioHist, ppiRatioHist] = ...
     computeSPIClinicalScaled(peak_times, ppa_values, ppi_values, ...
@@ -607,6 +620,8 @@ Bajo estrés, la vasoconstricción reduce el PPA y la taquicardia reduce el PPI.
 Finalmente, el SPI instantáneo se filtra mediante un suavizado exponencial, combinando una fracción del valor actual con una fracción del valor anterior. Con alpha = 0.25, este filtro tiene una constante de tiempo aproximada de 3.5 latidos, lo que equivale a unos 3 a 4 segundos para una frecuencia cardíaca normal.
 
 Este suavizado proporciona mayor estabilidad visual al índice, evitando oscilaciones bruscas, pero sin ocultar tendencias sostenidas como las inducidas por el CPT.
+
+##  Función de limpieza del puerto serial
 ```
 function clearSerialPort(s)
     try
